@@ -1,9 +1,9 @@
-import { db } from "../database/database.connection.js"
+import { getAllGames, getGameName, addGame } from "../repository/games.repository.js";
 
 export async function getGames(req, res) {
     try {
 
-        const games = await db.query(`SELECT * FROM games;`);
+        const games = await getAllGames();
 
         res.send(games.rows);
 
@@ -14,19 +14,16 @@ export async function getGames(req, res) {
 
 export async function createGames(req, res) {
 
-    const { name, image, stockTotal, pricePerDay } = req.body;
+    const { name } = req.body;
 
     try {
         
-        const game = await db.query(`SELECT name FROM games WHERE name = $1;`, [name]);
+        const game = await getGameName(name);
 
         if ( game.rowCount > 0 )
             return res.status(409).send({message:'Jogo já cadastrado!'});
 
-        await db.query(`
-            INSERT INTO games(name, image, "stockTotal", "pricePerDay")
-                VALUES($1, $2, $3, $4);
-        `, [name, image, stockTotal, pricePerDay]);
+        await addGame(req.body);
 
         res.sendStatus(201);
 
